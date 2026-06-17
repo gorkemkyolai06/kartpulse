@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  owner
+  manager
+  front_desk
+}
+
+enum KartType {
+  junior
+  standard
+  pro
+  double
+}
+
+enum KartStatus {
+  available
+  racing
+  maintenance
+  retired
+}
+
+enum SessionStatus {
+  recorded
+  verified
+  disputed
+}
+
+enum KartMaintenancePriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum KartMaintenanceStatus {
+  open
+  in_progress
+  completed
+  cancelled
+}
+
+enum TrackMaintenanceCategory {
+  surface_repair
+  barrier_check
+  timing_system
+  drainage
+  other
+}
+
+enum TrackMaintenanceStatus {
+  scheduled
+  in_progress
+  completed
+  overdue
+}
+
+enum RateCategory {
+  single_race
+  heat_package
+  birthday_party
+  league_night
+  group_event
+  other
+}
+
+enum RateStatus {
+  active
+  upcoming
+  archived
+}
+
+enum HelmetType {
+  youth
+  adult
+  pro
+  balaclava
+}
+
+enum HelmetStatus {
+  available
+  rented
+  maintenance
+  retired
+}
+
+model KartTrack {
+  id         String   @id @default(uuid())
+  name       String
+  phone      String?
+  address    String?
+  city       String?
+  state      String?
+  zipCode    String?  @map("zip_code")
+  totalKarts Int      @default(24) @map("total_karts")
+  timezone   String   @default("America/Chicago")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  users             User[]
+  kartFleet         KartFleet[]
+  raceSessions      RaceSession[]
+  kartMaintenance   KartMaintenance[]
+  trackMaintenance  TrackMaintenance[]
+  rateTiers         RateTier[]
+  helmetInventory   HelmetInventory[]
+
+  @@map("kart_tracks")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  role         UserRole @default(owner)
+  kartTrackId  String   @map("kart_track_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  kartTrack KartTrack @relation(fields: [kartTrackId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model KartFleet {
+  id          String     @id @default(uuid())
+  kartTrackId String     @map("kart_track_id")
+  name        String
+  section     String
+  kartType    KartType   @default(standard) @map("kart_type")
+  engineSpec  String?    @map("engine_spec")
+  status      KartStatus @default(available)
+  notes       String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  kartTrack       KartTrack         @relation(fields: [kartTrackId], references: [id], onDelete: Cascade)
+  raceSessions    RaceSession[]
+  kartMaintenance KartMaintenance[]
+
+  @@unique([kartTrackId, name])
+  @@index([kartTrackId, status])
+  @@map("kart_fleet")
+}
+
+model RaceSession {
+  id                   String        @id @default(uuid())
+  kartTrackId          String        @map("kart_track_id")
+  kartFleetId          String        @map("kart_fleet_id")
+  sessionAt            DateTime      @map("session_at")
+  cashAmount           Float         @default(0) @map("cash_amount")
+  cardAmount           Float         @default(0) @map("card_amount")
+  racers               Int           @default(0)
+  helmetRentalRevenue  Float         @default(0) @map("helmet_rental_revenue")
+  status               SessionStatus @default(recorded)
+  notes                String?
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  kartTrack KartTrack @relation(fields: [kartTrackId], references: [id], onDelete: Cascade)
+  kartFleet KartFleet @relation(fields: [kartFleetId], references: [id], onDelete: Cascade)
+
+  @@index([kartTrackId, sessionAt])
+  @@index([kartTrackId, status])
+  @@map("race_sessions")
+}
+
+model KartMaintenance {
+  id          String                  @id @default(uuid())
+  kartTrackId String                  @map("kart_track_id")
+  kartFleetId String                  @map("kart_fleet_id")
+  title       String
+  description String?
+  reportedAt  DateTime                @map("reported_at")
+  completedAt DateTime?               @map("completed_at")
+  priority    KartMaintenancePriority @default(medium)
+  status      KartMaintenanceStatus   @default(open)
+  cost        Float?
+  notes       String?
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+
+  kartTrack KartTrack @relation(fields: [kartTrackId], references: [id], onDelete: Cascade)
+  kartFleet KartFleet @relation(fields: [kartFleetId], references: [id], onDelete: Cascade)
+
+  @@index([kartTrackId, status])
+  @@index([kartTrackId, priority])
+  @@map("kart_maintenance")
+}
+
+model TrackMaintenance {
+  id          String                   @id @default(uuid())
+  kartTrackId String                   @map("kart_track_id")
+  title       String
+  description String?
+  category    TrackMaintenanceCategory @default(other)
+  section     String?
+  scheduledAt DateTime                 @map("scheduled_at")
+  status      TrackMaintenanceStatus   @default(scheduled)
+  createdAt   DateTime                 @default(now()) @map("created_at")
+  updatedAt   DateTime                 @updatedAt @map("updated_at")
+
+  kartTrack KartTrack @relation(fields: [kartTrackId], references: [id], onDelete: Cascade)
+
+  @@index([kartTrackId, scheduledAt])
+  @@map("track_maintenance")
+}
+
+model RateTier {
+  id              String       @id @default(uuid())
+  kartTrackId     String       @map("kart_track_id")
+  title           String
+  rateCategory    RateCategory @default(single_race) @map("rate_category")
+  status          RateStatus   @default(active)
+  basePrice       Float        @map("base_price")
+  priceMultiplier Float        @default(1.0) @map("price_multiplier")
+  notes           String?
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  kartTrack KartTrack @relation(fields: [kartTrackId], references: [id], onDelete: Cascade)
+
+  @@index([kartTrackId, rateCategory])
+  @@map("rate_tiers")
+}
+
+model HelmetInventory {
+  id          String       @id @default(uuid())
+  kartTrackId String       @map("kart_track_id")
+  name        String
+  helmetType  HelmetType   @map("helmet_type")
+  size        String?
+  status      HelmetStatus @default(available)
+  rentalPrice Float        @default(0) @map("rental_price")
+  notes       String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  kartTrack KartTrack @relation(fields: [kartTrackId], references: [id], onDelete: Cascade)
+
+  @@index([kartTrackId, helmetType])
+  @@index([kartTrackId, status])
+  @@map("helmet_inventory")
+}
