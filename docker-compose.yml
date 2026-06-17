@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kartpulse
+      POSTGRES_PASSWORD: kartpulse123
+      POSTGRES_DB: kartpulse
+    ports:
+      - '5454:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kartpulse']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - '4014:4014'
+    environment:
+      DATABASE_URL: postgresql://kartpulse:kartpulse123@postgres:5432/kartpulse?schema=public
+      JWT_SECRET: kartpulse-dev-secret
+      FRONTEND_URL: http://localhost:3014
+      PORT: 4014
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run deploy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '3014:3014'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4014/api
+    depends_on:
+      - backend
