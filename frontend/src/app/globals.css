@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 96%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 96%;
+    --secondary: 48 100% 92%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 4 95% 44%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 4 95% 44%;
+    --destructive-foreground: 0 0% 96%;
+    --success: 142 50% 40%;
+    --success-foreground: 0 0% 96%;
+    --warning: 48 100% 50%;
+    --warning-foreground: 0 0% 10%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 4 95% 44%;
+    --radius: 0px;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 14%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 14%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 48 100% 50%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 4 95% 44%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 4 90% 42%;
+    --destructive-foreground: 0 0% 96%;
+    --success: 142 45% 38%;
+    --success-foreground: 0 0% 96%;
+    --warning: 48 100% 50%;
+    --warning-foreground: 0 0% 10%;
+    --border: 0 0% 22%;
+    --input: 0 0% 22%;
+    --ring: 4 95% 44%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-bebas-neue), system-ui, sans-serif;
+    @apply font-normal tracking-wide uppercase;
+  }
+}
+
+@layer components {
+  .pit-card {
+    @apply border border-border/60 border-l-4 border-l-accent bg-card shadow-sm;
+  }
+  .pit-btn {
+    @apply font-semibold transition-colors;
+  }
+  .kart-pill {
+    @apply px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+  }
+  .kart-pill-available {
+    @apply bg-success/15 text-success;
+  }
+  .kart-pill-racing {
+    @apply bg-accent/15 text-accent;
+  }
+  .kart-pill-maintenance {
+    @apply bg-warning/15 text-warning-foreground;
+  }
+  .kart-pill-retired {
+    @apply bg-muted text-muted-foreground;
+  }
+}
